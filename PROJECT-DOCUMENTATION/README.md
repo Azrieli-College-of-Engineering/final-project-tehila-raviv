@@ -1,168 +1,113 @@
-\# IDOR Vulnerability Challenge - Product Review Edit
+# IDOR Vulnerability Challenge - Product Review Edit
+## OWASP Juice Shop - Final Project
+### Web Security Course | Azrieli College of Engineering
 
-\## OWASP Juice Shop - Final Project
-
-\### Web Security Course | Azrieli College of Engineering
-
-\*\*Student:\*\* Tehila Raviv  
-
-\*\*Track:\*\* B - Adding a challenge to Juice Shop
-
-
+**Student:** Tehila Raviv  
+**Track:** B - Adding a challenge to Juice Shop  
+**GitHub Repository:** https://github.com/Azrieli-College-of-Engineering/final-project-tehila-raviv
 
 ---
 
+## 📁 Project Structure
 
-
-\## Project Overview
-
-This project adds an IDOR (Insecure Direct Object Reference) vulnerability 
-
-challenge to the OWASP Juice Shop application. The challenge demonstrates 
-
-how an attacker can edit other users' product reviews by manipulating 
-
-review IDs in API requests.
-
-
-
----
-
-
-
-\## Vulnerability Description
-
-\*\*Type:\*\* IDOR - Insecure Direct Object Reference  
-
-\*\*Location:\*\* `routes/updateProductReviews.ts`  
-
-\*\*OWASP Category:\*\* A01:2021 - Broken Access Control
-
-
-
-The vulnerability exists because the update review API endpoint accepts 
-
-any review ID without verifying that the review belongs to the 
-
-authenticated user.
-
-
-
----
-
-
-
-\## Files Modified
-
-1\. `routes/updateProductReviews.ts` - Backend API (vulnerable + fixed)
-
-2\. `frontend/src/app/product-details/product-details.component.html` - Added Edit button
-
-
-
----
-
-
-
-\## How to Reproduce the Vulnerability
-
-
-
-\### Setup:
-
-1\. Clone and run Juice Shop locally
-
-2\. Register two test users:
-
-&nbsp;  - test1@test.com / Test123!
-
-&nbsp;  - test2@test.com / Test123!
-
-3\. Add a product review as each user
-
-
-
-\### Exploit Steps:
-
-1\. Log in as test1@test.com
-
-2\. Open any product with reviews
-
-3\. Click the Edit (pencil) button on test2's review
-
-4\. Change the review text and click Submit
-
-5\. Review is successfully changed - IDOR confirmed!
-
-
-
-\### OR via Browser Console:
-
-```javascript
-
-fetch('/rest/products/reviews', {
-
-&nbsp; method: 'PATCH',
-
-&nbsp; headers: {
-
-&nbsp;   'Content-Type': 'application/json',
-
-&nbsp;   'Authorization': 'Bearer ' + localStorage.getItem('token')
-
-&nbsp; },
-
-&nbsp; body: JSON.stringify({
-
-&nbsp;   id: 'TARGET\_REVIEW\_ID',
-
-&nbsp;   message: 'Hacked review!'
-
-&nbsp; })
-
-}).then(r => r.json()).then(console.log)
-
+**IMPORTANT: All project documentation is in the `PROJECT-DOCUMENTATION/` folder:**
 ```
-
-
-
----
-
-
-
-\## The Fix
-
-Added authorization check in `routes/updateProductReviews.ts`:
-
-\- Only update review if author matches logged-in user email
-
-\- Returns 403 Forbidden if ownership check fails
-
-
-
----
-
-
-
-\## Project Structure
-
-```
-
 PROJECT-DOCUMENTATION/
-
-├── README.md                    
-
+├── REPORT.pdf                          ← 2-page final report (START HERE)
+├── REPORT.docx                         ← Same report in Word format
+├── README.md                           ← This file
 ├── vulnerable-code/
-
-│   ├── updateProductReviews.vulnerable.ts  
-
-│   └── product-details.component.html      
-
+│   ├── updateProductReviews.vulnerable.ts   ← Vulnerable backend (IDOR vulnerability)
+│   └── product-details.component.html       ← Frontend with edit button
 ├── fixed-code/
-
-│   └── updateProductReviews.fixed.ts       
-
-└── screenshots/                            
-
+│   └── updateProductReviews.fixed.ts        ← Secure backend (fix applied)
+└── screenshots/                        ← Attack demonstration screenshots
+    ├── 1-edit-button-visible.png
+    ├── 2-edit-dialog-open.png
+    ├── 3-exploit-success.png
+    ├── 4-fix-403-error.png
+    └── 5-own-review-edit-works.png
 ```
 
+---
+
+## 📝 Quick Summary
+
+**Vulnerability:** IDOR (Insecure Direct Object Reference) in product review editing  
+**Type:** OWASP A01:2021 - Broken Access Control  
+**Impact:** Any authenticated user can edit any other user's product reviews
+
+**What was added:**
+1. Edit button visible on all reviews (frontend change)
+2. Backend API accepts any review ID without ownership verification (vulnerability)
+3. Authorization check added in fixed version (solution)
+
+---
+
+## 🎯 How to Review This Project
+
+### Option 1: Read the Documentation (Recommended)
+1. **Start with:** `PROJECT-DOCUMENTATION/REPORT.pdf` - Complete 2-page report
+2. **View screenshots:** `PROJECT-DOCUMENTATION/screenshots/` - Attack demonstration
+3. **Compare code:**
+   - Vulnerable: `PROJECT-DOCUMENTATION/vulnerable-code/updateProductReviews.vulnerable.ts`
+   - Fixed: `PROJECT-DOCUMENTATION/fixed-code/updateProductReviews.fixed.ts`
+
+### Option 2: Run the Code
+The main repository files have been modified:
+- `routes/updateProductReviews.ts` - Currently contains the FIXED version
+- `frontend/src/app/product-details/product-details.component.html` - Contains edit button
+
+**To test the VULNERABLE version:**
+```bash
+# Replace the fix with vulnerable version
+cp PROJECT-DOCUMENTATION/vulnerable-code/updateProductReviews.vulnerable.ts routes/updateProductReviews.ts
+npm run build:server
+npm start
+# Follow exploitation steps in report
+```
+
+**To test the FIXED version:**
+```bash
+# Use current master branch (already contains fix)
+npm start
+# Try to edit another user's review → 403 Forbidden
+```
+
+---
+
+## 🔍 Quick Exploitation Demo
+
+**Setup:**
+1. Register two users: `test1@test.com`, `test2@test.com`
+2. Each user submits a product review
+
+**Attack (with vulnerable version):**
+1. Log in as test1
+2. Click the edit button on test2's review
+3. Change the review text
+4. Review is successfully changed! (IDOR vulnerability confirmed)
+
+**Defense (with fixed version):**
+1. Same steps as above
+2. Server returns: `403 Forbidden - You can only edit your own reviews`
+
+---
+
+## 📚 Additional Information
+
+**Modified Files:**
+- `routes/updateProductReviews.ts` (backend)
+- `frontend/src/app/product-details/product-details.component.html` (frontend)
+
+**Key Changes:**
+- Added visible edit button for all reviews (frontend)
+- Added authorization check: `author === logged-in user email` (backend fix)
+- Returns 403 error when trying to edit others' reviews (backend fix)
+
+**Sources:**
+- OWASP Top 10 A01:2021
+- PortSwigger IDOR Guide
+- OWASP Juice Shop Repository
+
+---
